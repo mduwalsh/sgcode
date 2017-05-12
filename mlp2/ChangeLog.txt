@@ -1,0 +1,6 @@
+
+# May 9, 2017
+  - Parameter Vop is added; it replaces parameters Vc1, Vc2, Vc3, Vl1, Vl2, Vl3, Vcf1, Vcf2, Vcf3;
+    Vop indicates set of probablity options to update strategies; the set of probability options is configured in array in mlp.c file
+  - Parameter Rho is added; Rho is probability that a polity goes to a pool of polities engaged in an "us vs. them"
+    game at a given time step.
