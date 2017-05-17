@@ -22,7 +22,7 @@ int K[]     = {4};
 
 double delta[] = {0.1};
 double k[]     = {0.25};
-double Theta[] = {1, 2, 4};
+double Theta[] = {1, 2, 4};    // place values of 'a' parameter
 
 double cx[]    = {1};
 double cy[]    = {0.125};
