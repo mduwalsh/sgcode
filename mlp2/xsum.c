@@ -9,18 +9,9 @@
 #define SKIP 10
 
 /* sets of parameters to be simulated on */
-int n[]        = {4, 8, 16};
-
-double b[]     = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-//double b[]     = {3, 4};
-//double b[]     = {5, 6};
-//double b[]     = {7, 8};
-//double b[]     = {9, 10};
-//double b[]     = {11, 12};
-//double b[]     = {13, 14};
-//double b[]     = {15, 16};
-//double b[]     = {17, 18};
-//double b[]     = {19, 20 };
+int Vop[]      = {1, 2, 3};
+int n[]        = {4};
+double b[]     = {1, 2, 3};
 double B[]     = {1};
 double delta[] = {0};
 double DELTA[] = {0};
@@ -28,25 +19,23 @@ double K[]     = {0};
 double k[]     = {0};
 
 double Theta_u[] = {0, 0.1, 0.2};
-double Eta_u[]   = {0.0, 0.1, 0.2};
-double Theta_d[] = {1};
-double Eta_d[]   = {1};
+double Eta_u[]   = {0};
+double Theta_d[] = {0};
+double Eta_d[]   = {0};
 
 double cx[]    = {1};
 double cy[]    = {1};
-double cz[]    = {1};
+double cz[]    = {0};
 
-
-double V1[]    = {0.0};
-double V2[]    = {0.};
-double V3[]    = {0.25};
 double x_0[]   = {1};    // x0
-double y_0[]   = {0.0625, 0.125, 0.25};          // y0
-double z_0[]   = {0.0625, 0.125, 0.25};          // z0
-double X0[]    = {2, 4, 8};
-double Y0[]    = {3.2};
+double y_0[]   = {0.125, 0.25, 0.5};          // y0
+double z_0[]   = {1};          // z0
+double X0[]    = {2, 4, 8, 16};
+double Y0[]    = {1};
 double e[]     = {1, 2, 4};
-double E[]     = {1, 2, 4};
+double E[]     = {1};
+double Rho[]   = {0.4};
+
 
 /* end of sets of parameters to be simulated on */
 
@@ -63,27 +52,35 @@ double   m         = 0.1;
 double   Sigma     = 0.1; 
 double   Sigma_t   = 0.1; 
 
-/* end of other basic parameters */
-int i[24], is[24];
-int _n; 
-double _b, _B, _delta, _DELTA, _K, _k, _Theta_u, _Theta_d, _Eta_u, _Eta_d, _cx, _cy, _cz, v1, v2, v3, _x_0, _y_0, _z_0, _X0, _Y0, _e, _E;
+double Vc[][3] = { {0.01, 0.24, 0.0}, {0.00, 0.01, 0.24}, {0.00, 0.01, 0.24} }; // commoner strategy update method probability sets for different options (1, 2, 3)
+double Vl[][3] = { {0.01, 0.24, 0.0}, {0.01, 0.24, 0.0}, {0.00, 0.01, 0.48} };  // leader strategy update method probability sets for different options (1, 2, 3)
+double Vcf[][3] = { {0.01, 0.24, 0.0}, {0.01, 0.24, 0.0}, {0.00, 0.01, 0.48} };  // chief strategy update method probability sets for different options (1, 2, 3)
 
+/* end of other basic parameters */
+int i[23], is[23];
+int _n, _Vop; 
+double _b, _B, _delta, _DELTA, _K, _k, _Theta_u, _Theta_d, _Eta_u, _Eta_d, _cx, _cy, _cz, _x_0, _y_0, _z_0, _Rho, _X0, _Y0, _e, _E;
+
+
+
+// data file to read data from
 void prep_file_in(char *fname, char *apndStr)
 /*
  * fname: variable in which name of file to be stored
  * apndStr: string to be appended to file name string
  */
 {
-  sprintf(fname, "g%02dn%02db%0.2fB%.2ftu%.2ftd%.2feu%.2fed%.2fcx%.2fcy%.2fcz%.2fv1%.2fv2%.2fv3%.2fY0%.2fX0%.2fe%.2fE%.2fx0%.2fy0%.2fz0%.2f%s", G, _n, _b, _B, _Theta_u, _Theta_d, _Eta_u, _Eta_d, _cx, _cy, _cz, v1, v2, v3, _Y0, _X0, _e, _E, _x_0, _y_0, _z_0, apndStr);
+  sprintf(fname, "g%02dn%02db%0.2fB%.2ftu%.2ftd%.2feu%.2fed%.2fcx%.2fcy%.2fcz%.2fVop%dRho%.2fY0%.2fX0%.2fe%.2fE%.2fx0%.2fy0%.2fz0%.2f%s", G, _n, _b, _B, _Theta_u, _Theta_d, _Eta_u, _Eta_d, _cx, _cy, _cz, _Vop, _Rho, _Y0, _X0, _e, _E, _x_0, _y_0, _z_0, apndStr);
 }
 
+// data file prepared to plot graph from
 void prep_file_out(char *fname, char *apndStr)
 /*
  * fname: variable in which name of file to be stored
  * apndStr: string to be appended to file name string
  */
 {
-  sprintf(fname, "n%02dtu%.2ftd%.2feu%.2fed%.2fcx%.2fcy%.2fcz%.2fv1%.2fv2%.2fv3%.2fe%.2fE%.2fx0%.2fy0%.2fz0%.2f%s",  _n, _Theta_u, _Theta_d, _Eta_u, _Eta_d, _cx, _cy, _cz, v1, v2, v3, _e, _E, _x_0, _y_0, _z_0, apndStr);
+  sprintf(fname, "n%02dtu%.2ftd%.2feu%.2fed%.2fcx%.2fcy%.2fcz%.2fVop%dRho%.2fY0%.2fe%.2fE%.2fx0%.2fy0%.2fz0%.2f%s",  _n, _Theta_u, _Theta_d, _Eta_u, _Eta_d, _cx, _cy, _cz, _Vop, _Rho, _Y0, _e, _E, _x_0, _y_0, _z_0, apndStr);
 }
 
 void prep_file_plot(char *fname, char *prpndStr, char *apndStr)
@@ -92,7 +89,7 @@ void prep_file_plot(char *fname, char *prpndStr, char *apndStr)
  * apndStr: string to be appended to file name string
  */
 {
-  sprintf(fname, "%seu%.2fcx%.2fcy%.2fcz%.2fv1%.2fv2%.2fv3%.2fE%.2fx0%.2fz0%.2fe%.2fy0%.2f%s", prpndStr, _Eta_u,_cx, _cy, _cz, v1, v2, v3,_E, _x_0, _z_0, _e, _y_0, apndStr);
+  sprintf(fname, "%stu%.2ftd%.2feu%.2fed%.2fcx%.2fcy%.2fcz%.2fVop%dRho%.2fY0%.2fe%.2fE%.2fx0%.2fy0%.2fz0%.2f%s", prpndStr, _Theta_u, _Theta_d, _Eta_u, _Eta_d, _cx, _cy, _cz, _Vop, _Rho, _Y0, _e, _E, _x_0, _y_0, _z_0, apndStr);
 }
 
 void plot(FILE *gp, char *title, char *type, int data_cols)
@@ -162,24 +159,23 @@ void plot_data_points()
 		      _cy = cy[i[12]];
 		      for(i[13] = 0; i[13] < is[13]; i[13]++){  // cz
 			_cz = cz[i[13]];
-			for(i[14] = 0; i[14] < is[14]; i[14]++){  // V1
-			  v1 = V1[i[14]];
-			  for(i[15] = 0; i[15] < is[15]; i[15]++){  // V2
-			    v2 = V2[i[15]];
-			    for(i[16] = 0; i[16] < is[16]; i[16]++){  // V3
-			      v3 = V3[i[16]];
-			      for(i[17] = 0; i[17] < is[17]; i[17]++){  // x_0
-				_x_0 = x_0[i[17]];
-				for(i[18] = 0; i[18] < is[18]; i[18]++){  // y_0
-				  _y_0 = y_0[i[18]];
-				  for(i[19] = 0; i[19] < is[19]; i[19]++){  //z_0 	
-				    _z_0 = z_0[i[19]];
-				    for(i[21] = 0; i[21] < is[21]; i[21]++){  // Y0
-				      //_Y0 = Y0[i[21]];
-				      for(i[22] = 0; i[22] < is[22]; i[22]++){  // e
-					_e = e[i[22]];
-					for(i[23] = 0; i[23] < is[23]; i[23]++){  // E 
-					  _E = E[i[23]]; 
+			for(i[14] = 0; i[14] < is[14]; i[14]++){  // Vop
+			  _Vop = Vop[i[14]];
+			  for(i[15] = 0; i[15] < is[15]; i[15]++){  // Rho
+			    _Rho = Rho[i[15]];
+			    for(i[16] = 0; i[16] < is[16]; i[16]++){  // x_0
+			      _x_0 = x_0[i[16]];
+			      for(i[17] = 0; i[17] < is[17]; i[17]++){  // y_0 
+				_y_0 = y_0[i[17]];
+				for(i[18] = 0; i[18] < is[18]; i[18]++){ // z_0 
+				  _z_0 = z_0[i[18]];
+				  for(i[20] = 0; i[20] < is[20]; i[20]++){  // Y0
+				    _Y0 = Y0[i[20]];
+				    for(i[21] = 0; i[21] < is[21]; i[21]++){  // e
+				      _e = e[i[21]];
+				      for(i[22] = 0; i[22] < is[22]; i[22]++){  // E
+					_E = E[i[22]]; 					
+					  
 					  gp = popen ("gnuplot -persistent", "w"); // open gnuplot in persistent mode
 					  fprintf(gp, "set term pngcairo size 1600,900 enhanced color solid font \"Helvetica,8\" \n");
 					  //multiplot begins for efforts					  
@@ -277,12 +273,11 @@ void plot_data_points()
 					  }
 					  
 					  fprintf(gp, "unset multiplot\n");
-					  // multiplot ends
-					  
+					  // multiplot ends					  
 					  
 					  fflush(gp);
 					  pclose(gp);
-					}
+					
 				      }
 				    }
 				  }
@@ -336,24 +331,22 @@ void prep_data_file()
 			_cy = cy[i[12]];
 			for(i[13] = 0; i[13] < is[13]; i[13]++){  // cz
 			  _cz = cz[i[13]];
-			  for(i[14] = 0; i[14] < is[14]; i[14]++){  // V1
-			    v1 = V1[i[14]];
-			    for(i[15] = 0; i[15] < is[15]; i[15]++){  // V2
-			      v2 = V2[i[15]];
-			      for(i[16] = 0; i[16] < is[16]; i[16]++){  // V3
-				v3 = V3[i[16]];
-				for(i[17] = 0; i[17] < is[17]; i[17]++){  // x_0
-				  _x_0 = x_0[i[17]];
-				  for(i[18] = 0; i[18] < is[18]; i[18]++){  // y_0
-				    _y_0 = y_0[i[18]];
-				    for(i[19] = 0; i[19] < is[19]; i[19]++){  //z_0 	
-				      _z_0 = z_0[i[19]];
-				      for(i[21] = 0; i[21] < is[21]; i[21]++){  // Y0
-					_Y0 = Y0[i[21]];					
-					for(i[22] = 0; i[22] < is[22]; i[22]++){  // e
-					  _e = e[i[22]];
-					  for(i[23] = 0; i[23] < is[23]; i[23]++){  // E 
-					    _E = E[i[23]]; 
+			  for(i[14] = 0; i[14] < is[14]; i[14]++){  // Vop
+			    _Vop = Vop[i[14]];
+			    for(i[15] = 0; i[15] < is[15]; i[15]++){  // Rho
+			      _Rho = Rho[i[15]];
+			      for(i[16] = 0; i[16] < is[16]; i[16]++){  // x_0
+				 _x_0 = x_0[i[16]];
+				for(i[17] = 0; i[17] < is[17]; i[17]++){  // y_0
+				  _y_0 = y_0[i[17]];
+				  for(i[18] = 0; i[18] < is[18]; i[18]++){  //z_0 
+				    _z_0 = z_0[i[18]];
+				    for(i[20] = 0; i[20] < is[20]; i[20]++){  // Y0	
+				      _Y0 = Y0[i[20]];	
+				      for(i[21] = 0; i[21] < is[21]; i[21]++){  // e
+					_e = e[i[21]];
+					for(i[22] = 0; i[22] < is[22]; i[22]++){  // E 
+					  _E = E[i[22]];     
 					    for(i[0] = 0; i[0] < is[0]; i[0]++){  // n    
 					      _n = n[i[0]];
 					      // // create files (B, x and X0), (B, y and X0), and (B, P and X0) and payofss Ws
@@ -378,16 +371,16 @@ void prep_data_file()
 					      fprintf(fpoP, "b "); fprintf(fpoQ, "b "); 
 					      fprintf(fpowc, "b "); fprintf(fpowl, "b ");
 					      fprintf(fpoz, "b "); fprintf(fpowcf, "b ");
-					      for(i[20] = 0; i[20] < is[20]; i[20]++)  // X0						
+					      for(i[19] = 0; i[19] < is[19]; i[19]++)  // X0						
 					      {
-						fprintf(fpox, "X0=%.1f  ", X0[i[20]]);
-						fprintf(fpoy, "X0=%.1f  ", X0[i[20]]);
-						fprintf(fpoz, "X0=%.1f  ", X0[i[20]]);
-						fprintf(fpoP, "X0=%.1f  ", X0[i[20]]);
-						fprintf(fpoQ, "X0=%.1f  ", X0[i[20]]);
-						fprintf(fpowc, "X0=%.1f  ", X0[i[20]]);
-						fprintf(fpowl, "X0=%.1f  ", X0[i[20]]);
-						fprintf(fpowcf, "X0=%.1f  ", X0[i[20]]);
+						fprintf(fpox, "X0=%.1f  ", X0[i[19]]);
+						fprintf(fpoy, "X0=%.1f  ", X0[i[19]]);
+						fprintf(fpoz, "X0=%.1f  ", X0[i[19]]);
+						fprintf(fpoP, "X0=%.1f  ", X0[i[19]]);
+						fprintf(fpoQ, "X0=%.1f  ", X0[i[19]]);
+						fprintf(fpowc, "X0=%.1f  ", X0[i[19]]);
+						fprintf(fpowl, "X0=%.1f  ", X0[i[19]]);
+						fprintf(fpowcf, "X0=%.1f  ", X0[i[19]]);
 					      }
 					      fprintf(fpox, "\n"); fprintf(fpoy, "\n"); fprintf(fpoz, "\n"); 
 					      fprintf(fpoP, "\n"); fprintf(fpoQ, "\n"); 
@@ -403,9 +396,9 @@ void prep_data_file()
 						fprintf(fpowc, "%.1lf ", _b);
 						fprintf(fpowl, "%.1lf ", _b);
 						fprintf(fpowcf, "%.1lf ", _b);
-						for(i[20] = 0; i[20] < is[20]; i[20]++)  // X0						
+						for(i[19] = 0; i[19] < is[19]; i[19]++)  // X0						
 						{
-						  _X0 = X0[i[20]];
+						  _X0 = X0[i[19]];
 						  // read from input files
 						  prep_file_in(fin, "xsum.dat");
 						  if((fpix = fopen(fin, "r"))){
@@ -474,7 +467,7 @@ void prep_data_file()
 						fprintf(fpowc, "\n"); fprintf(fpowl, "\n"); fprintf(fpowcf, "\n");
 					      }
 					      fclose(fpox); fclose(fpoy); fclose(fpoz); fclose(fpoP); fclose(fpoQ); fclose(fpowc); fclose(fpowl); fclose(fpowcf);
-					    }
+					   
 					  }
 					}
 				      }
@@ -514,16 +507,15 @@ int main()
   is[11]  = sizeof(cx)/sizeof(double);
   is[12]  = sizeof(cy)/sizeof(double);
   is[13]  = sizeof(cz)/sizeof(double);
-  is[14]  = sizeof(V1)/sizeof(double);
-  is[15]  = sizeof(V2)/sizeof(double);
-  is[16]  = sizeof(V3)/sizeof(double);
-  is[17]  = sizeof(x_0)/sizeof(double);
-  is[18]  = sizeof(y_0)/sizeof(double);
-  is[19]  = sizeof(z_0)/sizeof(double);
-  is[20]  = sizeof(X0)/sizeof(double);
-  is[21]  = sizeof(Y0)/sizeof(double);
-  is[22]  = sizeof(e)/sizeof(double);
-  is[23]  = sizeof(E)/sizeof(double);
+  is[14]  = sizeof(Vop)/sizeof(int);
+  is[15]  = sizeof(Rho)/sizeof(double);  
+  is[16]  = sizeof(x_0)/sizeof(double);
+  is[17]  = sizeof(y_0)/sizeof(double);
+  is[18]  = sizeof(z_0)/sizeof(double);
+  is[19]  = sizeof(X0)/sizeof(double);
+  is[20]  = sizeof(Y0)/sizeof(double);
+  is[21]  = sizeof(e)/sizeof(double);
+  is[22]  = sizeof(E)/sizeof(double);
   
   prep_data_file();
   
@@ -536,14 +528,8 @@ int main()
 
 
 /** Usage:
-    compile : gcc -o mljob mljob.c
-    run     : ./mljob
+    compile : gcc -o xsum xsum.c -lm
+    run     : ./xsum
 **/
 
-/*
- * createConfig(j, n[i[0]], b[i[1]], b[i[1]], delta[i[3]], DELTA[i[4]], K[i[5]], k[i[6]], Theta_u[i[7]], Theta_d[i[8]], Eta_u[i[9]], Eta_d[i[10]], cx[i[11]], cy[i[12]], cz[i[13]], V1[i[14]], V2[i[15]], V3[i[16]], x_0[i[17]], y_0[i[18]], z_0[i[19]], X0[i[20]], X0[i[20]], e[i[22]], E[i[23]]);
-						  createScript(j, n[i[0]], b[i[1]], b[i[1]], delta[i[3]], DELTA[i[4]], K[i[5]], k[i[6]], Theta_u[i[7]], Theta_d[i[8]], Eta_u[i[9]], Eta_d[i[10]], cx[i[11]], cy[i[12]], cz[i[13]], V1[i[14]], V2[i[15]], V3[i[16]], x_0[i[17]], y_0[i[18]], z_0[i[19]], X0[i[20]], X0[i[20]], e[i[22]], E[i[23]]);   
-						  sprintf(scall, "qsub mlpscript.%d.sh", j);
-						  sc = system(scall);
-						  if(sc) printf("Error submitting jobs!!\n");
-*/
+

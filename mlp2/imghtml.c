@@ -12,9 +12,9 @@
 #define HEIGHT 225
 
 /* sets of parameters to be simulated on */
-int n[]        = {4, 8, 16};
-
-double b[]     = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+int Vop[]      = {1, 2, 3};
+int n[]        = {4};
+double b[]     = {1, 2, 3};
 double B[]     = {1};
 double delta[] = {0};
 double DELTA[] = {0};
@@ -22,32 +22,30 @@ double K[]     = {0};
 double k[]     = {0};
 
 double Theta_u[] = {0, 0.1, 0.2};
-double Eta_u[]   = {0, 0.1, 0.2};
+double Eta_u[]   = {0};
 double Theta_d[] = {0};
 double Eta_d[]   = {0};
 
 double cx[]    = {1};
 double cy[]    = {1};
-double cz[]    = {1};
+double cz[]    = {0};
 
-
-double V1[]    = {0.01};
-double V2[]    = {0.24};
-double V3[]    = {0.};
 double x_0[]   = {1};    // x0
 double y_0[]   = {0.125, 0.25, 0.5};          // y0
-double z_0[]   = {0.05, 0.1, 0.2};          // z0
+double z_0[]   = {1};          // z0
 double X0[]    = {2, 4, 8, 16};
 double Y0[]    = {1};
 double e[]     = {1, 2, 4};
-double E[]     = {1, 2, 4};
+double E[]     = {1};
+double Rho[]   = {0.4};
+
 
 /* end of sets of parameters to be simulated on */
 
 /* end of other basic parameters */
 int i[24], is[24];
-int _n; 
-double _b, _B, _delta, _DELTA, _K, _k, _Theta_u, _Theta_d, _Eta_u, _Eta_d, _cx, _cy, _cz, v1, v2, v3, _x_0, _y_0, _z_0, _X0, _Y0, _e, _E;
+int _n, _Vop; 
+double _b, _B, _delta, _DELTA, _K, _k, _Theta_u, _Theta_d, _Eta_u, _Eta_d, _cx, _cy, _cz, _Rho, _x_0, _y_0, _z_0, _X0, _Y0, _e, _E;
 
 void prep_file_plot(char *fname, char *prpndStr, char *apndStr)
 /*
@@ -55,7 +53,7 @@ void prep_file_plot(char *fname, char *prpndStr, char *apndStr)
  * apndStr: string to be appended to file name string
  */
 {
-  sprintf(fname, "%seu%.2fcx%.2fcy%.2fcz%.2fv1%.2fv2%.2fv3%.2fE%.2fx0%.2fz0%.2fe%.2fy0%.2f%s", prpndStr, _Eta_u,_cx, _cy, _cz, v1, v2, v3,_E, _x_0, _z_0, _e, _y_0, apndStr);
+  sprintf(fname, "%stu%.2ftd%.2feu%.2fed%.2fcx%.2fcy%.2fcz%.2fVop%dRho%.2fY0%.2fe%.2fE%.2fx0%.2fy0%.2fz0%.2f%s", prpndStr, _Theta_u, _Theta_d, _Eta_u, _Eta_d, _cx, _cy, _cz, _Vop, _Rho, _Y0, _e, _E, _x_0, _y_0, _z_0, apndStr);
 }
 
 void write_image_thumbnail_holder(FILE *fp, char *ifile)
@@ -71,19 +69,18 @@ void write_image_table_format(FILE *fp, char *type)
   char ifile[300];
   // start table
   fprintf(fp, "\n<table>\n");
-  //write first row of table / column headers
+  //write first row of table / column headers  // outside x axis in html page
   fprintf(fp, "<tr class=\"rowsinfo\">\n");
   fprintf(fp, "<td></td>\n");
-  for(i[18] = 0; i[18] < is[18]; i[18]++){  // y_0
-    _y_0 = y_0[i[18]];
-    fprintf(fp, "<td> y0 = %g </td>\n", _y_0);
+  for(i[3] = 0; i[3] < is[3]; i[3]++){  // delta
+    _delta = delta[i[3]];
+    fprintf(fp, "<td> &delta; = %g </td>\n", _delta);
   }
   fprintf(fp, "</tr>\n");  
 
   for(i[2] = 0; i[2] < is[2]; i[2]++){  // B
     //_B = B[i[2]];
-    for(i[3] = 0; i[3] < is[3]; i[3]++){  // delta
-      _delta = delta[i[3]];
+    
       for(i[4] = 0; i[4] < is[4]; i[4]++){  // DELTA
 	_DELTA = DELTA[i[4]];
 	for(i[5] = 0; i[5] < is[5]; i[5]++){  //  K
@@ -103,30 +100,30 @@ void write_image_table_format(FILE *fp, char *type)
 		      _cy = cy[i[12]];
 		      for(i[13] = 0; i[13] < is[13]; i[13]++){  // cz
 			_cz = cz[i[13]];
-			for(i[14] = 0; i[14] < is[14]; i[14]++){  // V1
-			  v1 = V1[i[14]];
-			  for(i[15] = 0; i[15] < is[15]; i[15]++){  // V2
-			    v2 = V2[i[15]];
-			    for(i[16] = 0; i[16] < is[16]; i[16]++){  // V3
-			      v3 = V3[i[16]];
-			      for(i[17] = 0; i[17] < is[17]; i[17]++){  // x_0
-				_x_0 = x_0[i[17]];				
-				for(i[19] = 0; i[19] < is[19]; i[19]++){  //z_0 	
-				  _z_0 = z_0[i[19]];
-				  for(i[21] = 0; i[21] < is[21]; i[21]++){  // Y0
-				    //_Y0 = Y0[i[21]];				    
-				    for(i[23] = 0; i[23] < is[23]; i[23]++){  // E 
-				      _E = E[i[23]]; 
-				      for(i[22] = 0; i[22] < is[22]; i[22]++){  // e
-					_e = e[i[22]];
+			for(i[14] = 0; i[14] < is[14]; i[14]++){  // Vop
+			  _Vop = Vop[i[14]];
+			  for(i[15] = 0; i[15] < is[15]; i[15]++){  // Rho
+			    _Rho = Rho[i[15]];
+			    for(i[16] = 0; i[16] < is[16]; i[16]++){  // x_0
+			      _x_0 = x_0[i[16]];
+			      for(i[17] = 0; i[17] < is[17]; i[17]++){  // y_0 
+				_y_0 = y_0[i[17]];
+				for(i[18] = 0; i[18] < is[18]; i[18]++){ // z_0 
+				  _z_0 = z_0[i[18]];
+				  for(i[20] = 0; i[20] < is[20]; i[20]++){  // Y0
+				    _Y0 = Y0[i[20]];
+				    for(i[21] = 0; i[21] < is[21]; i[21]++){  // e
+				      _e = e[i[21]];
+				      for(i[22] = 0; i[22] < is[22]; i[22]++){  // E
+					_E = E[i[22]]; 
 					// create a row of images
 					fprintf(fp, "<tr>\n");
 					fprintf(fp, "<td class=\"rowsinfo\">\n");
 					fprintf(fp, "&eta;:%g, z0:%g, E:%g, e:%g\n", _Eta_u, _z_0, _E, _e);
 					fprintf(fp, "</td>\n");
-					//major y axis columns in images.html layout file
-					for(i[18] = 0; i[18] < is[18]; i[18]++){  // y_0
-					  _y_0 = y_0[i[18]];
+					//major x axis columns in images.html layout file
+					for(i[3] = 0; i[3] < is[3]; i[3]++){  // delta
+					  _delta = delta[i[3]];
 					  // get image file name
 					  prep_file_plot(ifile, type, ".png");
 					  fprintf(fp, "<td align='center'>\n");
@@ -152,7 +149,7 @@ void write_image_table_format(FILE *fp, char *type)
 	  }
 	}
       }
-    }
+    
   }
   fprintf(fp, "</table>\n");  
 }
@@ -185,7 +182,7 @@ void write_images_html(char *title)
 {
   FILE *fp;  
   fp = fopen(FileName, "w+");
-  int ic1, ic2;
+  //int ic1, ic2;
 
   // get time
   time_t t = time(NULL);
@@ -221,16 +218,15 @@ int main()
   is[11]  = sizeof(cx)/sizeof(double);
   is[12]  = sizeof(cy)/sizeof(double);
   is[13]  = sizeof(cz)/sizeof(double);
-  is[14]  = sizeof(V1)/sizeof(double);
-  is[15]  = sizeof(V2)/sizeof(double);
-  is[16]  = sizeof(V3)/sizeof(double);
-  is[17]  = sizeof(x_0)/sizeof(double);
-  is[18]  = sizeof(y_0)/sizeof(double);
-  is[19]  = sizeof(z_0)/sizeof(double);
-  is[20]  = sizeof(X0)/sizeof(double);
-  is[21]  = sizeof(Y0)/sizeof(double);
-  is[22]  = sizeof(e)/sizeof(double);
-  is[23]  = sizeof(E)/sizeof(double);
+  is[14]  = sizeof(Vop)/sizeof(int);
+  is[15]  = sizeof(Rho)/sizeof(double);
+  is[16]  = sizeof(x_0)/sizeof(double);
+  is[17]  = sizeof(y_0)/sizeof(double);
+  is[18]  = sizeof(z_0)/sizeof(double);
+  is[19]  = sizeof(X0)/sizeof(double);
+  is[20]  = sizeof(Y0)/sizeof(double);
+  is[21]  = sizeof(e)/sizeof(double);
+  is[22]  = sizeof(E)/sizeof(double);
   
   write_images_html(TITLE);
   
