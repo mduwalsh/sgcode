@@ -1382,10 +1382,9 @@ void changeStratLeader(int v, int h, int j, double ppl, int *l, double *ly, int 
     sx = g->X;                                // sum of efforts from commoners
     nP = groupProduction(sx, y, g->nc);                                                     // new group production
     f = (1.0-Polity[h].e_u)* g->t_u * n*b *nP - cy*y + ppl;                                   // new payoff before punishment
-    for(a = 0; a < g->nc; a++){
-      // punish commoner if x = 0 with new probability p                      
-	  f -= (pn*delta*n_x0);                    // cost due to punishment to commoner	      
-    }    
+    // punish commoner if x = 0 with new probability p                      
+    f -= (pn*delta*n_x0);                    // cost due to punishment to commoner	      
+    
     // punish leader if new y is among least L efforts made by leaders
     if(y <= ly[L-1]){                        // j is punishable if y is less than or equal to effort made by Lth leader, 
       f -= ((Polity+h)->chief->q*K);     

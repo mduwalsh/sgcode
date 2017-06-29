@@ -5,9 +5,9 @@
 #include<unistd.h>
 
 /* sets of parameters to be simulated on */
-int Vop[]      = {1, 2, 3};
+int Vop[]      = {1, 2};
 int n[]        = {4};
-double b[]     = {1, 2, 3};
+double b[]     = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 double B[]     = {1};
 double delta[] = {0};
 double DELTA[] = {0};
@@ -21,16 +21,16 @@ double Eta_d[]   = {0};
 
 double cx[]    = {1};
 double cy[]    = {1};
-double cz[]    = {0};
+double cz[]    = {1};
 
 double x_0[]   = {1};    // x0
-double y_0[]   = {0.125, 0.25, 0.5};          // y0
+double y_0[]   = {1};          // y0
 double z_0[]   = {1};          // z0
-double X0[]    = {2, 4, 8, 16};
+double X0[]    = {2, 4, 8};
 double Y0[]    = {1};
-double e[]     = {1, 2, 4};
+double e[]     = {1};
 double E[]     = {1};
-double Rho[]   = {0.4};
+double Rho[]   = {0.0};
 
 double Dummy[] = {1.0};
 
@@ -43,7 +43,7 @@ int      Runs      = 10;
 int      G         = 1000;   
 int      H         = 1;
 int      T         = 1500;   
-int      L         = 5;
+int      L         = 2;
 double   m         = 0.1;
 
 double   Sigma     = 0.1; 
@@ -70,16 +70,16 @@ void createConfig(int j, int _vop, int _n, double _b, double _B, double _delta, 
   fprintf(fp, "int      H         = %d; \n", H);
   fprintf(fp, "\n");
   fprintf(fp, "double   b         = %lf; \n", _b);
-  fprintf(fp, "double   B         = %lf; \n", _B);
+  fprintf(fp, "double   B         = %lf; \n", _b);
   fprintf(fp, "double   cx        = %lf; \n", _cx);
   fprintf(fp, "double   cy        = %lf; \n", _cy);
   fprintf(fp, "double   cz        = %lf; \n", _cz);  
   fprintf(fp, "\n");  
   fprintf(fp, "unsigned L         = %d; \n", L);
   fprintf(fp, "double   k         = %lf; \n", _k);
-  fprintf(fp, "double   K         = %lf; \n", _K);  
+  fprintf(fp, "double   K         = %lf; \n", _n*_k);  
   fprintf(fp, "double   delta     = %lf; \n", _delta);
-  fprintf(fp, "double   DELTA     = %lf; \n", _DELTA);
+  fprintf(fp, "double   DELTA     = %lf; \n", _n*_delta);
   fprintf(fp, "\n");  
   fprintf(fp, "double   Theta_u   = %lf; \n", _Theta_u);
   fprintf(fp, "double   Theta_d   = %lf; \n", _Theta_d);
@@ -137,7 +137,7 @@ int main()
   is[11]  = sizeof(cx)/sizeof(double);
   is[12]  = sizeof(cy)/sizeof(double);
   is[13]  = sizeof(cz)/sizeof(double);
-  is[14]  = sizeof(Vop)/sizeof(double);
+  is[14]  = sizeof(Vop)/sizeof(int);
   is[15]  = sizeof(Rho)/sizeof(double);
   is[16]  = sizeof(Dummy)/sizeof(double);
   is[17]  = sizeof(x_0)/sizeof(double);
@@ -172,7 +172,7 @@ int main()
 					    for(i[21] = 0; i[21] < is[21]; i[21]++)
 					      for(i[22] = 0; i[22] < is[22]; i[22]++)
 						for(i[23] = 0; i[23] < is[23]; i[23]++, j++){      
-						  createConfig(j, Vop[14], n[i[0]], b[i[1]], b[i[1]], delta[i[3]], DELTA[i[4]], K[i[5]], k[i[6]], Theta_u[i[7]], Theta_d[i[8]], Eta_u[i[9]], Eta_d[i[10]], cx[i[11]], cy[i[12]], cz[i[13]], x_0[i[17]], y_0[i[18]], z_0[i[19]], X0[i[20]], X0[i[20]], e[i[22]], E[i[23]], Rho[i[16]]);
+						  createConfig(j, Vop[i[14]], n[i[0]], b[i[1]], b[i[1]], delta[i[3]], DELTA[i[4]], K[i[5]], k[i[6]], Theta_u[i[7]], Theta_d[i[8]], Eta_u[i[9]], Eta_d[i[10]], cx[i[11]], cy[i[12]], cz[i[13]], x_0[i[17]], y_0[i[18]], z_0[i[19]], X0[i[20]], X0[i[20]], e[i[22]], E[i[23]], Rho[i[16]]);
 						  createScript(j, n[i[0]]);   
 						  sprintf(scall, "qsub mlpscript.%d.sh", j);
 						  sc = system(scall);
