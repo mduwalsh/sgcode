@@ -5,20 +5,14 @@
 #include<unistd.h>
 
 /* sets of parameters to be simulated on */
-int n[]        = {4};
-
-double b[]     = {1, 2, 3};
-//double b[]     = {4, 5, 6};
-//double b[]     = {7, 8, 9};
-//double b[]     = {10, 11, 12};
-//double b[]     = {13, 14, 15};
-//double b[]     = {16, 17, 18};
-//double b[]     = {19, 20 };
+int Vop[]      = {1, 2};
+int n[]        = {4, 8, 16};
+double b[]     = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 double B[]     = {1};
-double delta[] = {0};
+double delta[] = {0.05, 0.1, 0.2};
 double DELTA[] = {0};
+double k[]     = {0.125, 0.25, 0.5};
 double K[]     = {0};
-double k[]     = {0};
 
 double Theta_u[] = {0, 0.1, 0.2};
 double Eta_u[]   = {0};
@@ -27,30 +21,29 @@ double Eta_d[]   = {0};
 
 double cx[]    = {1};
 double cy[]    = {1};
-double cz[]    = {0};
+double cz[]    = {1};
 
-
-double V1[]    = {0.01};
-double V2[]    = {0.24};
-double V3[]    = {0.};
 double x_0[]   = {1};    // x0
-double y_0[]   = {0.125, 0.25, 0.5};          // y0
+double y_0[]   = {1};          // y0
 double z_0[]   = {1};          // z0
-double X0[]    = {2, 4, 8, 16};
+double X0[]    = {2, 4, 8};
 double Y0[]    = {1};
-double e[]     = {1, 2, 4};
+double e[]     = {1};
 double E[]     = {1};
+double Rho[]   = {0.0};
+
+double Dummy[] = {1.0};
 
 /* end of sets of parameters to be simulated on */
 
 /* other basic parameters */
 unsigned Seed      = 0;     
-int      Runs      = 10;  
+int      Runs      = 20;  
 
 int      G         = 1000;   
 int      H         = 1;
 int      T         = 1500;   
-int      L         = 5;
+int      L         = 2;
 double   m         = 0.1;
 
 double   Sigma     = 0.1; 
@@ -59,7 +52,7 @@ double   Sigma_t   = 0.1;
 
 /* end of other basic parameters */
 
-void createConfig(int j, int _n, double _b, double _B, double _delta, double _DELTA, double _K, double _k, double _Theta_u, double _Theta_d, double _Eta_u, double _Eta_d, double _cx, double _cy, double _cz, double v1, double v2, double v3, double _x_0, double _y_0, double _z_0, double _X0, double _Y0, double _e, double _E)
+void createConfig(int j, int _vop, int _n, double _b, double _B, double _delta, double _DELTA, double _K, double _k, double _Theta_u, double _Theta_d, double _Eta_u, double _Eta_d, double _cx, double _cy, double _cz, double _x_0, double _y_0, double _z_0, double _X0, double _Y0, double _e, double _E, double _Rho)
 {
   FILE *fp;
   char cfile[20];
@@ -77,26 +70,25 @@ void createConfig(int j, int _n, double _b, double _B, double _delta, double _DE
   fprintf(fp, "int      H         = %d; \n", H);
   fprintf(fp, "\n");
   fprintf(fp, "double   b         = %lf; \n", _b);
-  fprintf(fp, "double   B         = %lf; \n", _B);
+  fprintf(fp, "double   B         = %lf; \n", _b);
   fprintf(fp, "double   cx        = %lf; \n", _cx);
   fprintf(fp, "double   cy        = %lf; \n", _cy);
   fprintf(fp, "double   cz        = %lf; \n", _cz);  
   fprintf(fp, "\n");  
   fprintf(fp, "unsigned L         = %d; \n", L);
   fprintf(fp, "double   k         = %lf; \n", _k);
-  fprintf(fp, "double   K         = %lf; \n", _K);  
+  fprintf(fp, "double   K         = %lf; \n", _n*_k);  
   fprintf(fp, "double   delta     = %lf; \n", _delta);
-  fprintf(fp, "double   DELTA     = %lf; \n", _DELTA);
+  fprintf(fp, "double   DELTA     = %lf; \n", _n*_delta);
   fprintf(fp, "\n");  
   fprintf(fp, "double   Theta_u   = %lf; \n", _Theta_u);
   fprintf(fp, "double   Theta_d   = %lf; \n", _Theta_d);
   fprintf(fp, "double   Eta_u     = %lf; \n", _Eta_u);
   fprintf(fp, "double   Eta_d     = %lf; \n", _Eta_d);
   fprintf(fp, "\n");
-  fprintf(fp, "double   V1        = %lf; \n", v1);
-  fprintf(fp, "double   V2        = %lf; \n", v2);
-  fprintf(fp, "double   V3        = %lf; \n", v3);  
+  fprintf(fp, "unsigned Vop       = %d; \n", _vop);
   fprintf(fp, "double   m         = %lf; \n", m); 
+  fprintf(fp, "double   Rho       = %lf; \n", _Rho);
   fprintf(fp, "\n");  
   fprintf(fp, "double   x0        = %lf; \n", _x_0);
   fprintf(fp, "double   y0        = %lf; \n", _y_0);
@@ -112,7 +104,7 @@ void createConfig(int j, int _n, double _b, double _B, double _delta, double _DE
   fclose(fp);
 }
 
-void createScript(int j, int _n, double _b, double _B, double _delta, double _DELTA, double _K, double _k, double _Theta_u, double _Theta_d, double _Eta_u, double _Eta_d, double _cx, double _cy, double _cz, double v1, double v2, double v3, double _x_0, double _y_0, double _z_0, double _X0, double _Y0, double _e, double _E)
+void createScript(int j, int _n)
 {
   char sfile[20];
   //char path[256];
@@ -120,7 +112,7 @@ void createScript(int j, int _n, double _b, double _B, double _delta, double _DE
   sprintf(sfile, "mlpscript.%d.sh", j);
   fp = fopen(sfile, "w");
   fprintf(fp, "#PBS -l nodes=1\n");
-  fprintf(fp, "#PBS -N ml.%d.%.2lf%.2lf%.2lf.%.2lf.%.2lf.%.2lf%.2lf.%.2lf.%.2lf.%.2lf.%.2lf.%.2lf.%.2lf.%.2lf.%.2lf.%.2lf.%.2lf\n", _n, _K, _k, _b, _Theta_u, _Eta_u, _cx, _cy, _cz, _X0, _e, _E, v1, v2, v3, _x_0, _y_0, _z_0);
+  fprintf(fp, "#PBS -N ml.%d.%d\n", _n, j);
   fprintf(fp, "#PBS -l walltime=24:00:00\n" );
   fprintf(fp, "cd $PBS_O_WORKDIR\n");
   //getcwd(path, 256);
@@ -145,9 +137,9 @@ int main()
   is[11]  = sizeof(cx)/sizeof(double);
   is[12]  = sizeof(cy)/sizeof(double);
   is[13]  = sizeof(cz)/sizeof(double);
-  is[14]  = sizeof(V1)/sizeof(double);
-  is[15]  = sizeof(V2)/sizeof(double);
-  is[16]  = sizeof(V3)/sizeof(double);
+  is[14]  = sizeof(Vop)/sizeof(int);
+  is[15]  = sizeof(Rho)/sizeof(double);
+  is[16]  = sizeof(Dummy)/sizeof(double);
   is[17]  = sizeof(x_0)/sizeof(double);
   is[18]  = sizeof(y_0)/sizeof(double);
   is[19]  = sizeof(z_0)/sizeof(double);
@@ -180,8 +172,8 @@ int main()
 					    for(i[21] = 0; i[21] < is[21]; i[21]++)
 					      for(i[22] = 0; i[22] < is[22]; i[22]++)
 						for(i[23] = 0; i[23] < is[23]; i[23]++, j++){      
-						  createConfig(j, n[i[0]], b[i[1]], b[i[1]], delta[i[3]], DELTA[i[4]], K[i[5]], k[i[6]], Theta_u[i[7]], Theta_d[i[8]], Eta_u[i[9]], Eta_d[i[10]], cx[i[11]], cy[i[12]], cz[i[13]], V1[i[14]], V2[i[15]], V3[i[16]], x_0[i[17]], y_0[i[18]], z_0[i[19]], X0[i[20]], X0[i[20]], e[i[22]], E[i[23]]);
-						  createScript(j, n[i[0]], b[i[1]], b[i[1]], delta[i[3]], DELTA[i[4]], K[i[5]], k[i[6]], Theta_u[i[7]], Theta_d[i[8]], Eta_u[i[9]], Eta_d[i[10]], cx[i[11]], cy[i[12]], cz[i[13]], V1[i[14]], V2[i[15]], V3[i[16]], x_0[i[17]], y_0[i[18]], z_0[i[19]], X0[i[20]], X0[i[20]], e[i[22]], E[i[23]]);   
+						  createConfig(j, Vop[i[14]], n[i[0]], b[i[1]], b[i[1]], delta[i[3]], DELTA[i[4]], K[i[5]], k[i[6]], Theta_u[i[7]], Theta_d[i[8]], Eta_u[i[9]], Eta_d[i[10]], cx[i[11]], cy[i[12]], cz[i[13]], x_0[i[17]], y_0[i[18]], z_0[i[19]], X0[i[20]], X0[i[20]], e[i[22]], E[i[23]], Rho[i[16]]);
+						  createScript(j, n[i[0]]);   
 						  sprintf(scall, "qsub mlpscript.%d.sh", j);
 						  sc = system(scall);
 						  if(sc) printf("Error submitting jobs!!\n");
