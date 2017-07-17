@@ -14,39 +14,41 @@ unsigned long Where;    // debugging counter
 #include "rand.c"
 
 
-#define TestH 1                  // test polity interested in
+#define TestH 0                  // test polity interested in
 #define TestG 4                  // test group interested in
 
 #define CLUSTER 0            // is this simulation on cluster yes or no (1 or 0)
-#define SKIP 10           // time interval between snapshot of states
+#define SKIP 1           // time interval between snapshot of states
 #define STU 500             // summary time period for simulation
 
-#define AVERAGE_GRAPH_ONLY 0  // if 1, generate only average graphs and supress individual run graphs
-#define TURNOFF_TEST_PLOT 1 // if 1, does not produce frequency distribution and traits graphs for test group
+#define AVERAGE_GRAPH_ONLY 1  // if 1, generate only average graphs and supress individual run graphs
+#define TURNOFF_TEST_PLOT 0 // if 1, does not produce frequency distribution and traits graphs for test group
 
 #define ALLDATAFILE 1        // if 1, generate all data files for individual runs and summary too 
 #define GRAPHS      0        // if 1, saves graphs as png files 
 
 #define INIT_COM_EFFORT rnd(2)              // 0 or 1
-#define INIT_LEAD_EFFORT U01()
-#define INIT_CHIEF_EFFORT U01()
+#define INIT_LEAD_EFFORT 0
+#define INIT_CHIEF_EFFORT 0
 
-#define INIT_CHIEF_PUN_EFFORT U01()
+#define INIT_CHIEF_PUN_EFFORT 0
 #define INIT_LEAD_PUN_EFFORT U01()
 // change values to 0 if update strategy for any one of commoner or lead or chief is to be turned off
 #define UPDATE_COM 1
-#define UPDATE_LEAD_EFFORT 1
-#define UPDATE_CHIEF_EFFORT 1
+#define UPDATE_LEAD_EFFORT 0
+#define UPDATE_CHIEF_EFFORT 0
 
-#define UPDATE_CHIEF_PUN_EFFORT 1
+#define UPDATE_CHIEF_PUN_EFFORT 0
 #define UPDATE_LEAD_PUN_EFFORT 1
+
+#define TURNOFF_RUNS_DATA 1            // does not store individual runs dynamics data files in cluster
 
 // strategy update options and values
 // option_set = {random_mutation, selective_copy, optimization}
 // strategy update option set for each level = {option1_set, option2_set, option_3_set, ...}
-double Vc[][3] = { {0.01, 0.24, 0.0}, {0.00, 0.01, 0.24}, {0.00, 0.01, 0.24} }; // commoner strategy update method probability sets for different options (1, 2, 3)
-double Vl[][3] = { {0.01, 0.24, 0.0}, {0.01, 0.24, 0.0}, {0.00, 0.01, 0.48} };  // leader strategy update method probability sets for different options (1, 2, 3)
-double Vcf[][3] = { {0.01, 0.24, 0.0}, {0.01, 0.24, 0.0}, {0.00, 0.01, 0.48} };  // chief strategy update method probability sets for different options (1, 2, 3)
+double Vc[][3] = { {0.01, 0.24, 0.0}, {0.00, 0.00, 0.25} }; // commoner strategy update method probability sets for different options (1, 2, 3)
+double Vl[][3] = { {0.01, 0.24, 0.0}, {0.01, 0.24, 0.0} };  // leader strategy update method probability sets for different options (1, 2, 3)
+double Vcf[][3] = { {0.01, 0.24, 0.0}, {0.01, 0.24, 0.0} };  // chief strategy update method probability sets for different options (1, 2, 3)
 
 #define GP 1 // 1, 2, 3; uses different calculation for group production
 #define PS 1 // 1, 2, 3; uses different calculation for polity strength
@@ -228,7 +230,7 @@ void prep_file(char *fname, char *apndStr)
  * apndStr: string to be appended to file name string
  */
 {
-  sprintf(fname, "g%02dn%02db%0.2fB%.2ftu%.2ftd%.2feu%.2fed%.2fcx%.2fcy%.2fcz%.2fVop%dRho%.2fY0%.2fX0%.2fe%.2fE%.2fx0%.2fy0%.2fz0%.2f%s", G, n, b, B, Theta_u, Theta_d, Eta_u, Eta_d, cx, cy, cz, Vop, Rho, Y0, X0, e, E, x_0, y_0, z_0, apndStr);
+  sprintf(fname, "g%02dn%02db%0.2fB%.2fk%0.2fdl%.2ftu%.2ftd%.2feu%.2fed%.2fcx%.2fcy%.2fcz%.2fVop%dRho%.2fY0%.2fX0%.2fe%.2fE%.2fx0%.2fy0%.2fz0%.2f%s", G, n, b, B, k, delta, Theta_u, Theta_d, Eta_u, Eta_d, cx, cy, cz, Vop, Rho, Y0, X0, e, E, x_0, y_0, z_0, apndStr);
 }
 
 // generates random number following exponential distribution
@@ -393,6 +395,7 @@ void calcStat(int k, int r)
 //   }
 // #endif
 
+#if (!TURNOFF_RUNS_DATA || !CLUSTER )
   static FILE **fp = NULL;  // file pointers for individual run  
   if(k < 0){
     for (h = 5; h--; fclose(fp[h]));
@@ -421,7 +424,7 @@ void calcStat(int k, int r)
     fprintf(fp[3], "0\tP\tQ\n");
     fprintf(fp[4], "0\tp\tq\n");
   }
- 
+#endif
   // calculate stat of traits
   for(h = 0; h < H; h++){                                                               // through all polities
     p = Polity+h;
@@ -509,13 +512,14 @@ void calcStat(int k, int r)
   EDmean[k] += edm;
   Pmean[k] += Pm;
   Qmean[k] += Qm;  
-       
+#if (!TURNOFF_RUNS_DATA || !CLUSTER )
   // write data for individual runs
   fprintf(fp[0], "%d  %.4lf  %.4lf  %.4lf\n", k, xm, ym, zm);
   fprintf(fp[1], "%d  %.4lf  %.4lf  %.4lf\n", k, p0m, p1m, p2m);
   fprintf(fp[2], "%d  %.4lf  %.4lf  %.4lf  %.4lf\n", k, tum, tdm, eum, edm);  
   fprintf(fp[3], "%d  %.4lf  %.4lf\n", k, Pm, Qm); 
   fprintf(fp[4], "%d  %.4lf  %.4lf\n", k, pm, qm); 
+#endif
 #if !CLUSTER
   // print final values for each run
   if(k == T/SKIP){
@@ -599,7 +603,7 @@ void writeDataToFile()
   double st = STU/SKIP + 1;
   xsum /= st; ysum /= st; zsum /= st; p0sum /= st; p1sum /= st; p2sum /= st; 
   t_usum /= st; t_dsum /= st; e_usum /= st; e_dsum /= st;                // computing average over summary period time
-  psum /= st; qsum /= st;
+  psum /= st; qsum /= st;  // todo: Psum /= st; Qsum /= st; 
   // write data to file
   char  xsumdata[200], psumdata[200], tsumdata[200], punsumdata[200], Psumdata[200];
   prep_file(xsumdata, "xsum.dat");    
@@ -1203,6 +1207,7 @@ int updateStratCommoner_v3(int x, double X, double y, double pn, int n, double t
     double p0, p1;                                       
     p0 = 1.0 + (1.0-t_u)*b*groupProduction(X-x+0, y, n) + ppc - k*pn;    // new payoff for 0 effort
     p1 = 1.0 + (1.0-t_u)*b*groupProduction(X-x+1, y, n) + ppc - cx - k*pn;    // new payoff for 0 effort    
+    //return (U01() < 1.0/( 1.0+exp(p0 - p1) ) )? 1 : 0;
     return (p1 > p0)? 1: 0;  
 }
 
