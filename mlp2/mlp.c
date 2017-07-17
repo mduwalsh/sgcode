@@ -14,31 +14,31 @@ unsigned long Where;    // debugging counter
 #include "rand.c"
 
 
-#define TestH 1                  // test polity interested in
+#define TestH 0                  // test polity interested in
 #define TestG 4                  // test group interested in
 
-#define CLUSTER 1            // is this simulation on cluster yes or no (1 or 0)
-#define SKIP 10           // time interval between snapshot of states
+#define CLUSTER 0            // is this simulation on cluster yes or no (1 or 0)
+#define SKIP 1           // time interval between snapshot of states
 #define STU 500             // summary time period for simulation
 
-#define AVERAGE_GRAPH_ONLY 0  // if 1, generate only average graphs and supress individual run graphs
-#define TURNOFF_TEST_PLOT 1 // if 1, does not produce frequency distribution and traits graphs for test group
+#define AVERAGE_GRAPH_ONLY 1  // if 1, generate only average graphs and supress individual run graphs
+#define TURNOFF_TEST_PLOT 0 // if 1, does not produce frequency distribution and traits graphs for test group
 
 #define ALLDATAFILE 1        // if 1, generate all data files for individual runs and summary too 
 #define GRAPHS      0        // if 1, saves graphs as png files 
 
 #define INIT_COM_EFFORT rnd(2)              // 0 or 1
-#define INIT_LEAD_EFFORT U01()
-#define INIT_CHIEF_EFFORT U01()
+#define INIT_LEAD_EFFORT 0
+#define INIT_CHIEF_EFFORT 0
 
-#define INIT_CHIEF_PUN_EFFORT U01()
+#define INIT_CHIEF_PUN_EFFORT 0
 #define INIT_LEAD_PUN_EFFORT U01()
 // change values to 0 if update strategy for any one of commoner or lead or chief is to be turned off
 #define UPDATE_COM 1
-#define UPDATE_LEAD_EFFORT 1
-#define UPDATE_CHIEF_EFFORT 1
+#define UPDATE_LEAD_EFFORT 0
+#define UPDATE_CHIEF_EFFORT 0
 
-#define UPDATE_CHIEF_PUN_EFFORT 1
+#define UPDATE_CHIEF_PUN_EFFORT 0
 #define UPDATE_LEAD_PUN_EFFORT 1
 
 #define TURNOFF_RUNS_DATA 1            // does not store individual runs dynamics data files in cluster
@@ -603,7 +603,7 @@ void writeDataToFile()
   double st = STU/SKIP + 1;
   xsum /= st; ysum /= st; zsum /= st; p0sum /= st; p1sum /= st; p2sum /= st; 
   t_usum /= st; t_dsum /= st; e_usum /= st; e_dsum /= st;                // computing average over summary period time
-  psum /= st; qsum /= st;
+  psum /= st; qsum /= st;  // todo: Psum /= st; Qsum /= st; 
   // write data to file
   char  xsumdata[200], psumdata[200], tsumdata[200], punsumdata[200], Psumdata[200];
   prep_file(xsumdata, "xsum.dat");    
@@ -1207,6 +1207,7 @@ int updateStratCommoner_v3(int x, double X, double y, double pn, int n, double t
     double p0, p1;                                       
     p0 = 1.0 + (1.0-t_u)*b*groupProduction(X-x+0, y, n) + ppc - k*pn;    // new payoff for 0 effort
     p1 = 1.0 + (1.0-t_u)*b*groupProduction(X-x+1, y, n) + ppc - cx - k*pn;    // new payoff for 0 effort    
+    //return (U01() < 1.0/( 1.0+exp(p0 - p1) ) )? 1 : 0;
     return (p1 > p0)? 1: 0;  
 }
 
