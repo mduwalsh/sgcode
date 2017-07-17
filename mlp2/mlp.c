@@ -13,7 +13,7 @@ unsigned long Where;    // debugging counter
 
 #include "rand.c"
 
-
+#define TEST_PLOT 1 // if 1, does not produce frequency distribution and traits graphs for test group
 #define TestH 0                  // test polity interested in
 #define TestG 4                  // test group interested in
 
@@ -22,8 +22,6 @@ unsigned long Where;    // debugging counter
 #define STU 500             // summary time period for simulation
 
 #define AVERAGE_GRAPH_ONLY 1  // if 1, generate only average graphs and supress individual run graphs
-#define TURNOFF_TEST_PLOT 0 // if 1, does not produce frequency distribution and traits graphs for test group
-
 #define ALLDATAFILE 1        // if 1, generate all data files for individual runs and summary too 
 #define GRAPHS      0        // if 1, saves graphs as png files 
 
@@ -137,7 +135,8 @@ unsigned int G;                            // no. of groups
 unsigned int n;                            // no. of commoners
 unsigned int H;                            // no. of politites
 unsigned int T;                            // max time of simulation
-double Theta_u, Theta_d, Eta_u, Eta_d;     // taxes / rewards
+unsigned int Lambda;                       // error suppression
+double Theta_u, Theta_d, Eta_u, Eta_d, Theta_ua, Theta_da, Eta_ua, Eta_da;     // taxes / rewards
 double cx, cy, cz;                // cost parameter
 double b, B;                      // expected benefit for a game
 double Sigma;                     // standard deviation for distribution of mutation for contribution
@@ -179,6 +178,7 @@ int read_config(char *file_name)
   EXPECT(1, "unsigned Seed      = %u;", &Seed);
   EXPECT(1, "int      Runs      = %d;", &Runs);
   EXPECT(1, "int      T         = %d;", &T);
+  EXPECT(1, "int      Lambda    = %d;", &Lambda);
   
   EXPECT(1, "int      n         = %d;", &n);
   EXPECT(1, "int      G         = %d;", &G);  
@@ -189,6 +189,8 @@ int read_config(char *file_name)
   EXPECT(1, "double   cx        = %lf;", &cx);
   EXPECT(1, "double   cy        = %lf;", &cy);
   EXPECT(1, "double   cz        = %lf;", &cz);     
+  EXPECT(1, "double   cp        = %lf;", &cp);
+  EXPECT(1, "double   cq        = %lf;", &cq);     
   
   EXPECT(1, "unsigned L         = %u;", &L);
   EXPECT(1, "double   k         = %lf;", &k);
@@ -196,10 +198,10 @@ int read_config(char *file_name)
   EXPECT(1, "double   delta     = %lf;", &delta);
   EXPECT(1, "double   DELTA     = %lf;", &DELTA);
   
-  EXPECT(1, "double   Theta_u   = %lf;", &Theta_u);
-  EXPECT(1, "double   Theta_d   = %lf;", &Theta_d);
-  EXPECT(1, "double   Eta_u     = %lf;", &Eta_u);
-  EXPECT(1, "double   Eta_d     = %lf;", &Eta_d);  
+  EXPECT(1, "double   Theta_ua  = %lf;", &Theta_ua);
+  EXPECT(1, "double   Theta_da  = %lf;", &Theta_da);
+  EXPECT(1, "double   Eta_ua    = %lf;", &Eta_ua);
+  EXPECT(1, "double   Eta_da    = %lf;", &Eta_da);  
 
   EXPECT(1, "unsigned Vop       = %d;", &Vop);
   EXPECT(1, "double   m         = %lf;", &m); 
@@ -230,7 +232,7 @@ void prep_file(char *fname, char *apndStr)
  * apndStr: string to be appended to file name string
  */
 {
-  sprintf(fname, "g%02dn%02db%0.2fB%.2fk%0.2fdl%.2ftu%.2ftd%.2feu%.2fed%.2fcx%.2fcy%.2fcz%.2fVop%dRho%.2fY0%.2fX0%.2fe%.2fE%.2fx0%.2fy0%.2fz0%.2f%s", G, n, b, B, k, delta, Theta_u, Theta_d, Eta_u, Eta_d, cx, cy, cz, Vop, Rho, Y0, X0, e, E, x_0, y_0, z_0, apndStr);
+  sprintf(fname, "g%02dla%dn%02db%0.2fB%.2fk%0.2fdl%.2ftu%.2ftd%.2feu%.2fed%.2fcx%.2fcy%.2fcz%.2fcp%.2fcq%.2fVop%dRho%.2fY0%.2fX0%.2fe%.2fE%.2fx0%.2fy0%.2fz0%.2f%s", G, Lambda, n, b, B, k, delta, Theta_ua, Theta_da, Eta_ua, Eta_da, cx, cy, cz, cp, cq, Vop, Rho, Y0, X0, e, E, x_0, y_0, z_0, apndStr);
 }
 
 // generates random number following exponential distribution
@@ -1620,6 +1622,12 @@ int main(int argc, char **argv)
     return 1;
   }  
   
+  Theta_u = Theta_ua/(Theta_ua + n);
+  Theta_d = Theta_da/(Theta_da + n);
+  Eta_u = Eta_ua/(Eta_ua + G);
+  Eta_d = Eta_da/(Eta_da + G);
+  
+#if TEST_PLOT
   if(TestH >= H){
     printf("\n Program terminated! Error: TestH (test polity index) must be less than H. Note: [index starts from 0] \n");
     exit(1);
@@ -1628,6 +1636,7 @@ int main(int argc, char **argv)
     printf("\n Program terminated! Error: TestG (test group index) must be less than G. Note: [index starts from 0] \n");
     exit(1);
   }
+#endif
   
   //FILE *gp;
   initrand(Seed);
@@ -1673,7 +1682,7 @@ int main(int argc, char **argv)
 #if !AVERAGE_GRAPH_ONLY
     if(Runs > 1)
       plotIndividualRun(r, 0); 
-#if !TURNOFF_TEST_PLOT
+#if TEST_PLOT
       //plotTraitsDist(r);
 #endif
 #endif
@@ -1695,7 +1704,7 @@ int main(int argc, char **argv)
     
 #if !CLUSTER
 #if !AVERAGE_GRAPH_ONLY
-#if !TURNOFF_TEST_PLOT
+#if TEST_PLOT
     //gp = popen("gnuplot -persistent", "w");
    // plotLines(gp, "grtest.dat", 8, "traits evolution");
     //fflush(gp);
