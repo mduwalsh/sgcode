@@ -14,36 +14,39 @@
  
  Parameters on which simulation are run can be configured in configuration file mlp.config
 
- Seed:   seed to initialize psuedorandom number generator
- Runs:   number of runs for each simulation
- T:      time period of simulation for each run
- n:      number of commoners in a group
- G:      number of groups in a polity
- H:      number of polities in a system;
- b:      benefit per commoner
- B:      benefit per chief
- cx:     cost coefficient for commoners effort
- cy:     cost coeffficient for leaders effort
- cz:     cost coefficient for chiefs effort 
- L:      number of leaders with least efforts to be punished by chief in a group
- k:      punishment to commoner by leader
- K:      punishment to leader by chief
- delta:  punishment cost to leader for punishing commoner
- DELTA:  punishment cost to chief for punishing chief
- Theta_u:tax factor imposed by leader on commoner
- Theta_d:reward factor given by leader to commoner
- Eta_u:  tax factor imposed by chief on leader
- Eta_d:  reward factor given by chief to group
- Vop:    options - {1, 2, 3}; indicates set of probabilities of method to update commoner, leader and chief's strategies; for example, 1 indicates first set of options {...} in array Vc[][3], Vl[][3] and Vcf[][3] in mlp.c 
- Rho:    probability that polity plays to us vs them game
- m:      probability of migration (probability of copying strategy from other group or polity)
- x0:     half effort parameter of commoners
- y0:     half effort parameter of leaders
- z0:     half effort parameter of chiefs
- Y0:     half strength equivalent of polity
- e:      efficiency of leader
- E:      efficiency of chief
- Sigma:  standard deviation of effort distribution (normal)
+ Seed:    seed to initialize psuedorandom number generator
+ Runs:    number of runs for each simulation
+ T:       time period of simulation for each run
+ Lambda:  error (or precision) parameter to use QRE approach for selecting candidate strategy by commoner
+ n:       number of commoners in a group
+ G:       number of groups in a polity
+ H:       number of polities in a system;
+ b:       benefit per commoner
+ B:       benefit per chief
+ cx:      cost coefficient for commoners effort x
+ cy:      cost coeffficient for leaders effort y
+ cz:      cost coefficient for chiefs effort z
+ cp:      cost coefficient for leaders' punishment monitoring effort p
+ cq:      cost coefficient for cheifs' punishment monitoring effort q
+ L:       number of leaders with least efforts to be punished by chief in a group
+ k:       punishment to commoner by leader
+ K:       punishment to leader by chief
+ delta:   punishment cost to leader for punishing commoner
+ DELTA:   punishment cost to chief for punishing chief
+ Theta_ua:tax factor imposed by leader on commoner; Theta_u = Theta_ua/(n + Theta_ua)
+ Theta_da:reward factor given by leader to commoner; Theta_d = Theta_da/(n + Theta_da)
+ Eta_ua:  tax factor imposed by chief on leader; Eta_u = Eta_ua/(G + Eta_ua)
+ Eta_da:  reward factor given by chief to group; Eta_d = Eta_da/(G + Eta_da)
+ Vop:     options - {1, 2, 3}; indicates set of probabilities of method to update commoner, leader and chief's strategies; for example, 1 indicates first set of options {...} in array Vc[][3], Vl[][3] and Vcf[][3] in mlp.c 
+ Rho:     probability that polity plays to us vs them game
+ m:       probability of migration (probability of copying strategy from other group or polity)
+ x0:      half effort parameter of commoners
+ y0:      half effort parameter of leaders
+ z0:      half effort parameter of chiefs
+ Y0:      half strength equivalent of polity
+ e:       efficiency of leader
+ E:       efficiency of chief
+ Sigma:   standard deviation of effort distribution (normal)
  Sigma_t: standard deviation of tax distribution (normal)
 
  

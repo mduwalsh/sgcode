@@ -4,3 +4,23 @@
     Vop indicates set of probablity options to update strategies; the set of probability options is configured in array in mlp.c file
   - Parameter Rho is added; Rho is probability that a polity goes to a pool of polities engaged in an "us vs. them"
     game at a given time step.
+
+    
+# July 18, 2017
+
+  - Theta_ua, Theta_da, Eta_ua, Eta_da parameters added to modify adjustment of taxes.
+    Theta_u = Theta_ua/(n + Theta_ua)
+    Theta_d = Theta_da/(n + Theta_da)
+    Eta_u = Eta_ua/(G + Eta_ua)
+    Eta_d = Eta_da/(G + Eta_da)
+    
+  - Added parameter Lambda to use QRE approach during selection of stratgey by commoner. Commoner select to make effort 1 by probability:
+  U01() < 1.0/( 1.0 + exp( Lambda*(p0 - p1) ) ) ) 
+  
+  - Added cost of punishment monitoring efforts p and q as cp and cq respectively.
+    So leader's payoff = (1.0-eta_u)*theta_u*n*b*Production - cy*y - cp*n*p + leader's production share rewarded by chief;
+    chief's payoff:
+      Us vs nature game: eta_d*n*G*BQ - cz*z - cq*G*q
+      Us vs them game:
+	When sQ (sum of polity strength) > 0, eta_d*n*G*h1*BQ/sQ - cz*z - cq*G*q;
+	When sQ = 0, eta_d*n*G*B - cz*z - cq*G*q;

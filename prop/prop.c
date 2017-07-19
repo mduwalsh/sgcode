@@ -14,25 +14,26 @@ unsigned long Where;    // debugging counter
 
 #include "rand.c"
 
-#define LAST 500
+#define LAST 10
 #define TestPlot 0            // plot test group statistics or not
 #define TestG 2               // test group index
 
 #define UsVsNature_Them 1    // 1: Us vs Nature game; 2: Us vs Them game
 #define PIB_MFA 1            // 1: Predicting individual behavior; 2: Mean-field approximation // forecast method
+#define COORDINATION 0       // 0: Use propaganda; 1: Use coordination instead of propaganda
 
 #define AVERAGE_GRAPH_ONLY 0  // if 1, generate only average graphs and supress individual run graphs
-#define ALLDATAFILE 1        // if 1, generate all data files for individual runs and summary too 
+#define ALLDATAFILE 0        // if 1, generate all data files for individual runs and summary too 
 #define GRAPHS      0        // if 1, saves graphs as png files 
 
 #define INIT_COM_EFFORT rnd(2)              // 0 or 1
 #define INIT_LEAD_PUN_EFFORT U01()
-#define INIT_LEAD_NORM_EFFORT U01()
+#define INIT_LEAD_NORM_EFFORT 0
 
 // change values to 0 if update strategy for any one of commoner or lead is to be turned off
 #define UPDATE_COM 1
 #define UPDATE_LEAD_PUN_EFFORT 1
-#define UPDATE_LEAD_NORM_EFFORT 1
+#define UPDATE_LEAD_NORM_EFFORT 0
 
 #define CLUSTER 0            // is this simulation on cluster yes or no (1 or 0)
 #define SKIP 1           // time interval between snapshot of states
@@ -164,7 +165,7 @@ int read_config(char *file_name)
   
   EXPECT(1, "double   k         = %lf;", &k);
   EXPECT(1, "double   delta     = %lf;", &delta);  
-  EXPECT(1, "double   Theta     = %lf;", &Theta_a);
+  EXPECT(1, "double   Theta_a   = %lf;", &Theta_a);
  
   EXPECT(1, "double   Vc1       = %lf;", &Vc1);
   EXPECT(1, "double   Vc2       = %lf;", &Vc2);
@@ -837,15 +838,23 @@ double P(double z, double X, double rSX)
  * SX: sum of group efforts in whole group
  */
 {    
-//   double r = 1.0 + (e*z)/(n*z_0 + z);
-#if UsVsNature_Them == 1  // us vs nature 
-//   return r*X/( r*X + X0 );
-  return X/( X + X0 );
-#endif
-#if UsVsNature_Them == 2  // us vs them
-  if(rSX <= 0.0) return 1.0;
-//   return (r*X*G) / rSX;
-  return (X*G) / rSX;
+#if COORDINATION
+  double r = 1.0 + (e*z)/(n*z_0 + z);
+  #if UsVsNature_Them == 1  // us vs nature 
+    return r*X/( r*X + X0 );
+  #endif
+  #if UsVsNature_Them == 2  // us vs them
+    if(rSX <= 0.0) return 1.0;
+    return (r*X*G) / rSX;
+  #endif
+#else    
+  #if UsVsNature_Them == 1  // us vs nature 
+    return X/( X + X0 );
+  #endif  
+  #if UsVsNature_Them == 2  // us vs them
+    if(rSX <= 0.0) return 1.0;  
+    return (X*G) / rSX;
+  #endif
 #endif
 }
 
@@ -865,9 +874,12 @@ double s(double X)
 double u(unsigned int x1, unsigned int x0, double X, double y, double z, double rSX)
 {  
   double _s = s(X);
-//   double r = 1.0 + (e*z)/(n*z_0 + z);
-//   double pi_c = (1.0-Theta)*b*P(z, X-x0+x1,rSX+r*(x1-x0)) - cx*x1 - k*y*(1.0-x1);            // expected material payoff for commoners
+#if COORDINATION
+  double r = 1.0 + (e*z)/(n*z_0 + z);
+  double pi_c = (1.0-Theta)*b*P(z, X-x0+x1,rSX+r*(x1-x0)) - cx*x1 - k*y*(1.0-x1);            // expected material payoff for commoners
+#else
   double pi_c = (1.0-Theta)*b*P(z, X-x0+x1,rSX+(x1-x0)) - cx*x1 - k*y*(1.0-x1);            // expected material payoff for commoners
+#endif
   return (1.0-_s)*pi_c + _s*z*x1;
 }
 
@@ -941,8 +953,10 @@ double F(double X, double y, double z)
   else{
     C = cx - k*y - (_s*z)/(1.0-_s);
   }
-//   double r = 1.0 + (e*z)/(n*z_0 + z);
-//   C = C/r;
+#if COORDINATION
+  double r = 1.0 + (e*z)/(n*z_0 + z);
+  C = C/r;
+#endif
   if(C <= 0.0) return n;                      // to avoid division by zero and negative C
   double B = (1.0 - Theta)*b;
 #if UsVsNature_Them == 1  
@@ -1015,7 +1029,7 @@ void calcPayoff(int j)
     }    
   }
   // update payoff of leader
-  ld->pi = g->theta*n*b*g->P -cy*n*ld->y -cz*ld->z -cp; // payoff due to group production - cost of y - cost of punishing     
+  ld->pi = g->theta*n*b*g->P - cy*n*ld->y -cz*ld->z -cp; // payoff due to group production - cost of y - cost of punishing     
 }
 
 void calcUtilityFunction(int j, double rSX)
@@ -1040,7 +1054,9 @@ int sc(double p0, double p1)
  * p1: payoff of target member to copy
  */
 {
-  // return (p0 < p1)? 1 : 0;
+  
+  // uncomment this to use Lambda error suppresion
+  return (p1 > p0)? 1 : 0;
   
   double lpd = Lambda*(p0-p1);
   if(lpd < -LOG_FLT_MAX){
@@ -1126,7 +1142,7 @@ void updateStrategyLeader_V1(int j)
   Leader *ld;
   g = Polity->g+j;
   ld = g->lead;    
-  int rp = updateY0rZ();
+  int rp = updateY0rZ();  
   if(UPDATE_LEAD_PUN_EFFORT == 1 && (rp == 0 || rp == 2)){
     ld->y = normal(ld->y, Sigma);
     ld->y = MAX(ld->y, 0.0);
@@ -1146,11 +1162,12 @@ void updateStrategyLeader_V2(int j)
   Leader *ld;
   g = Polity->g+j;
   ld = g->lead;
-  int rp = updateY0rZ();
+  int rp = updateY0rZ();   
   int a = j;
   if(G > 1){
     do{ a = rnd(G); }while( a == j);                                   // select another group in polity
-    if( sc(ld->pi, Polity->g[a].lead[0].pi) ){                              // if leader in selected group has higher payoff copy strategy
+	
+    if( sc(ld->pi, Polity->g[a].lead[0].pi) ){                              // if leader in selected group has higher payoff copy strategy      
       if( UPDATE_LEAD_PUN_EFFORT == 1 && (rp == 0 || rp == 2)){
 	ld->y = (Polity->g+a)->lead->y;                          // copy punishment effort
       }
@@ -1226,9 +1243,12 @@ void updateStrategyLeader_V3(int j, unsigned int *x0, double X, double rSX)
 #else                 // Mean-field approximation
   X1 = F(X, ld->y, ld->z);
 #endif
-//   double r = 1.0 + (e*z[0])/(n*z_0 + z[0]);
-//   rSX1 = rSX + r*(X1 - X);                                        // new sum of group efforts across all groups
+#if COORDINATION
+  double r = 1.0 + (e*z[0])/(n*z_0 + z[0]);
+  rSX1 = rSX + r*(X1 - X);                                        // new sum of group efforts across all groups
+#else
   rSX1 = rSX + (X1 - X);                                        // new sum of group efforts across all groups
+#endif
   ul[0] = u_l(y[0], z[0], X1, X1, rSX1);                    // utility function
   ul_max = ul[0];
   for(i = 1; i < K+1; i++){      
@@ -1237,9 +1257,12 @@ void updateStrategyLeader_V3(int j, unsigned int *x0, double X, double rSX)
 #else
     X2[i] = F(X1, y[i], z[i]);
 #endif
-//     r = 1.0 + (e*z[i])/(n*z_0 + z[i]);
-//     ul[i] = u_l(y[i], z[i], X1, X2[i], rSX1+r*(-X1+X2[i]));                    // utility function
+#if COORDINATION
+    r = 1.0 + (e*z[i])/(n*z_0 + z[i]);
+    ul[i] = u_l(y[i], z[i], X1, X2[i], rSX1+r*(-X1+X2[i]));                    // utility function
+#else
     ul[i] = u_l(y[i], z[i], X1, X2[i], rSX1+(-X1+X2[i]));                    // utility function
+#endif
     if(ul[i] > ul_max) ul_max = ul[i]; 
   }    
  for(s = 0, i = 0; i < K+1; i++){
@@ -1274,10 +1297,10 @@ void updateStrategy(int j, double rSX)
 #if UPDATE_LEAD_PUN_EFFORT || UPDATE_LEAD_NORM_EFFORT
   v = drand(VLdist);
   if(v == 1){
-    updateStrategyLeader_V1(j);
+    updateStrategyLeader_V1(j);    
   }
   else if(v == 2){
-    updateStrategyLeader_V2(j);
+    updateStrategyLeader_V2(j);    
   }
   else if(v == 3){
     unsigned int *x0 = malloc(n*sizeof(unsigned int));
@@ -1303,14 +1326,16 @@ void updateStrategy(int j, double rSX)
 void playGame()
 {
   int j;
-  double rSX;
+  double r, rSX;
   group *g;
   // update X for every group in this round
   for(rSX = 0, j = 0; j < G; j++){
     g = Polity->g+j;
     calcX(j);                       // calculates and assigns X 
-//     r = 1.0 + (e*g->lead->z)/(n*z_0 + g->lead->z);
-//     rSX += r*g->X;
+#if COORDINATION
+     r = 1.0 + (e*g->lead->z)/(n*z_0 + g->lead->z);
+     rSX += r*g->X;
+#endif
     rSX += g->X;
   }
   Polity->SX = rSX;                  // sum of group efforts for this round  
@@ -1349,7 +1374,7 @@ void init(int r, int Runs)	//SG
       ld->y = INIT_LEAD_PUN_EFFORT;  
     }
     // SG 
-    // ld->y = INIT_LEAD_PUN_EFFORT;
+    ld->y = INIT_LEAD_PUN_EFFORT;
     ld->z = INIT_LEAD_NORM_EFFORT;
     ld->pi = 0;
     ld->ul = 0;
@@ -1375,6 +1400,8 @@ void init(int r, int Runs)	//SG
   Upc = Vc1 + Vc2 + Vc3;
   
 }
+
+
 
 int main(int argc, char **argv)
 {
@@ -1505,7 +1532,7 @@ int main(int argc, char **argv)
 	remove("testgroup.dat");              // plots test group dynamics	
   #endif
 	
-  return 1;
+  return 0;
 }
 
 
